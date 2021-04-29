@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<l10n>
+	<translationContributors/>
+	<texts>
+		<!-- Keys -->
+		<text name = "input_bs_Bale" text = "SeeBales: Dialoganzeige"/>
+		<!-- Gui Headers and Tables-->
+		<text name = "BS_Settings" text = "Einstellungen"/>
+		<text name = "BS_BaleStatistics" text = "Ballen-Statistik"/>
+		<text name = "BS_PalletStatistics" text = "Paletten-Statistik"/>
+		<text name = "BS_Type" text = "Typ"/>
+		<text name = "BS_Count" text = "Anzahl"/>
+
+		<!-- Gui Settings Dialog -->
+		<text name = "BS_showBales" text = "Ballen-Anzeige"/>
+		<text name = "BS_showPals" text = "Paletten-Anzeige"/>
+		<text name = "BS_size" text = "Symbolgröße"/>
+		<text name = "BS_icons" text = "Icons"/>
+		<text name = "BS_symbols" text = "Punktmarker"/>
+
+		<text name = "BS_tipShowBales" text = "Stellen Sie ein, ob die Ballen als Icon, als Punktmarker oder gar nicht angezeigt werden"/>
+		<text name = "BS_tipShowPals" text = "Stellen Sie ein, ob die Paletten als Icon, als Punktmarker oder gar nicht angezeigt werden"/>
+		<text name = "BS_tipSize" text = "Stellen Sie die Größe der auf der Karte angezeigten Symbole (Icons, Punktmarker) ein"/>
+		<text name = "BS_warnPal" text = "WARNUNG: Es gibt %d weitere aktive Palettenarten auf der Karte. Wir können zur Zeit nur 17 anzeigen."/>
+	</texts>
+</l10n>
