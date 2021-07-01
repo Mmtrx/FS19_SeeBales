@@ -52,16 +52,16 @@ end
 function SeeBalesEventNew:run(connection)
     if g_client and connection:getIsServer() then
     	-- event was broadcast from server, we need to update clients table
-    	print(("-- Event:run() called on client."))
-    	DebugUtil.printTableRecursively(self,".",1,2)
+    	dbprint(("-- Event:run() called on client."))
+    	if g_baleSee.debug then DebugUtil.printTableRecursively(self,".",1,2)
+    	end
     	local bs = g_baleSee
     	local bals = bs.bales[self.farmId]
     	local farm = self.farmId
     	local objId = self.object
     	local obj = g_client:getObject(objId) 
-		--local myfa = g_currentMission:getFarmId()
 
-    	if bals[self.hash] == nil then 				-- seen an new bale type
+    	if bals[self.hash] == nil then 				-- seen a new bale type
     		bals[self.hash] = {text = self.text, number = 0}
     		bs.numBalTypes[farm] = bs.numBalTypes[farm] +1
     	end
@@ -82,7 +82,7 @@ function SeeBalesEventNew:run(connection)
     end
 end
 ----------------------- SeeBales Events ----------------------------------------------
-SeeBalesJoinEvent = {}
+--[[ need only if we cannot use RoyalMod tooling
 SeeBalesJoinEvent_mt = Class(SeeBalesJoinEvent, Event)
 InitEventClass(SeeBalesJoinEvent, "SeeBalesJoinEvent")
 function SeeBalesJoinEvent:emptyNew()
@@ -119,3 +119,4 @@ function SeeBalesDataEvent:writeStream(stream, conn)
 		BaleSee:sendData(stream)
 	end	
 end
+]]

@@ -243,12 +243,10 @@ function BaleSee.pal:onChangedFillType(fillUnitIndex, fillTypeIndex, oldFillType
 	-- also, when selling/ feeding pallets, they change back to UNKNOWN when emptied, shortly 
 	-- before they get deleted
 	local bs = g_baleSee
-	if bs.debug then
-		print(string.format("-- filltype change(%d,%d,%d) for %s pallet %d to %s. Hotspot: %s", 
+	dbprint(string.format("-- filltype change(%d,%d,%d) for %s pallet %d to %s. Hotspot: %s", 
 		fillUnitIndex, fillTypeIndex, oldFillTypeIndex,
 		bs.ft[oldFillTypeIndex].name,
 	 	self.rootNode, bs.ft[fillTypeIndex].name, self.mapHotspot))
-	end
 	local hotspot = self.mapHotspot
 	if hotspot == nil then return; end 	-- only for our managed pallets
 
@@ -274,7 +272,7 @@ function BaleSee.pal:onChangedFillType(fillUnitIndex, fillTypeIndex, oldFillType
 	-- adjust pallet counts, old filltype -1, new fillType +1:
 	bs.pallets[farm][oldFillTypeIndex] = bs.pallets[farm][oldFillTypeIndex] -1
 	if bs.pallets[farm][fillTypeIndex] == nil then
-		bs.pallets[farm][fillTypeIndex] = 1 			-- we have a new filltype
+		bs.pallets[farm][fillTypeIndex] = 1 		-- we have a new filltype
 	else
 		bs.pallets[farm][fillTypeIndex] = bs.pallets[farm][fillTypeIndex] +1
 	end

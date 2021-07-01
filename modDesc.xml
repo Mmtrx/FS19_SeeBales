@@ -8,7 +8,7 @@
     </title>
     <description>
         <en><![CDATA[
-This mod will cause both the PDA player map and the ingame Menu map to show small hotspots for bale and pallet objects where ever they exist.  The hotspots will either show icons representing the various objects, whether bales or pallets, or small colored markers.
+This mod will cause both the PDA player map and the ingame Menu map to show small hotspots for bale and pallet objects where ever they exist. The hotspots will either show icons representing the various objects, whether bales or pallets, or small colored markers.
 
 The icons will look like the object itself, whereas the markers will represent objects by different colors, e.g.:
 
@@ -28,7 +28,10 @@ Whenever the game is saved, these settings will be saved to a file "BaleSee.xml"
 The SeeBales menu also displays some statistics about all ingame bales and pallets. Lines with count = 0 are not shown in the statistics tables.
 
 CHANGE LOG:
-V2.1.0.0: Added support for non-standard bales (e.g. from Maizeplus, Maizeplus Forage Extension).
+V2.1.0.0: 
+Added Multiplayer support.
+Hotspot details boxes now always display the bale or pallet image (together with name of owner farm in MP)
+Added support for non-standard bales (e.g. from Maizeplus, Maizeplus Forage Extension).
 Statistics now count bales of different sizes sepatarely.
 
 V2.0.0.1: Added support for non-standard pallets (e.g. for straw harvest add-on). 
@@ -39,9 +42,7 @@ Included cotton bales.
 Marker size now configurable.
 
 LIMITATIONS:
-The mod does not account for any bales / pallets in corresponding storage mods (e.g. BaleStacks https://www.farming-simulator.com/mod.php?lang=en&country=de&mod_id=141307&title=fs2019).
-For bales, the mod only knows the standard game filltypes, and will show/ count any modded bale types as "Unknown". (It will handle non-standard pallets, as of V2.0.0.1)
-The mod is as yet only for Singleplayer!]]></en>
+The mod does not account for any bales / pallets in corresponding storage mods (e.g. BaleStacks https://www.farming-simulator.com/mod.php?lang=en&country=de&mod_id=141307&title=fs2019).]]></en>
         <fr><![CDATA[Mod montre les balles et les palettes sur la carte.
 
 Si vous vous êtes déjà demandé si vous aviez fini de ramasser des balles dans un grand champ, ou si certaines d'entre elles ont roulé et se cachent maintenant dans l'eau ou les buissons, ce mod peut vous aider à les retrouver. Il en va de même pour la recherche de palettes sur la carte, qu'il s'agisse de semences, d'engrais, d'aliments pour porcs, etc.
@@ -59,7 +60,10 @@ Les valeurs de configuration définies sont stockées dans le fichier "BaleSee.x
 De plus, le mod montre des statistiques sur toutes les balles et palettes actuellement disponibles. Les lignes dont la valeur (nombre) = 0 sont supprimées dans les tableaux statistiques.
 
 LOG DE CHANGEMENT :
-V2.1.0.0: ajout d'une aide pour les balles non standard, par exemple pour Maizeplus, Maizeplus Forage Extension.
+V2.1.0.0: 
+Le mod fonctionne désormais aussi dans les jeux multijoueurs.
+Les boîtes de détails des hotspots (qui apparaissent en cliquant) montrent toujours une image de la balle/palette. En mode MP également le nom de l'exploitation associée. 
+Ajout d'une aide pour les balles non standard, par exemple pour Maizeplus, Maizeplus Forage Extension.
 Dans les statistiques, les balles de différentes tailles sont désormais comptées séparément.
 
 V2.0.0.1 : Ajout d'une aide pour les palettes non standard, par exemple pour Straw Harvest. 
@@ -71,8 +75,7 @@ Les balles de coton sont prises en compte.
 
 RESTRICTIONS :
 Le mode ne prend pas en compte les balles/palettes dans les mods de stockage (par exemple Bale Stacks https://www.farming-simulator.com/mod.php?lang=fr&country=fr&mod_id=141307&title=fs2019).
-Le mod ne connaît que les types de balles du jeu standard, les autres types de balles sont indiqués comme "Inconnu".
-Le mod est réservé aux joueurs individuels !]]></fr>
+]]></fr>
         <de><![CDATA[Dieser Mod bewirkt, dass die PDA-Player-Karte Hotspots für Ballen- und Palettenobjekte anzeigt, wo immer sie auf der Karte vorhanden sind.
 
 Wenn Sie sich jemals gefragt haben, ob Sie mit dem Sammeln von Ballen auf einem großen Feld fertig sind, oder ob Ihnen einige weggerollt sind und sich nun im Wasser oder im Gebüsch verstecken, kann Ihnen dieser Mod dabei helfen, sie wiederzufinden. Gleiches gilt für das Auffinden von Paletten auf der Karte, ob Saatgut, Dünger, Schweinefutter usw.
@@ -90,7 +93,10 @@ Die eingestellten Konfigurationswerte werden beim Speichern des Spielstands in d
 Außerdem zeigt der Mod eine Statistik über alle aktuell vorhandenen Ballen und Paletten an. Zeilen mit Wert (Anzahl) = 0 werden in den Statistiktabellen unterdrückt.
 
 CHANGE LOG:
-V2.1.0.0: Non-standard Ballen werden unterstützt (z.B. für Maizeplus, Maizeplus Forage Extension).
+V2.1.0.0: 
+Der Mod funktioniert nun auch in Multiplayer Spielen.
+Die Detailboxen der Hotspots (die beim Anklicken erscheinen) zeigen nun immer ein Bild des Ballens / der Palette. Im MP-Modus auch den Namen des zughörigen Hofes. 
+Non-standard Ballen werden unterstützt (z.B. für Maizeplus, Maizeplus Forage Extension).
 In der Statistik werden nun Ballen unterschiedlicher Größe separat gezählt. 
 
 V2.0.0.1: Support für non-standard Paletten hinzugefügt, z.B. für Straw Harvest add-on. 
@@ -102,8 +108,7 @@ Baumwollballen werden berücksichtigt.
 
 EINSCHRÄNKUNGEN:
 Der Mod berücksichtigt keine Ballen / Paletten in entsprechenden storage mods (z.B. BaleStacks https://www.farming-simulator.com/mod.php?lang=de&country=de&mod_id=141307&title=fs2019).
-Der Mod kennt nur die Ballentypen des Standardspiels, andere Ballentypen werden als "Unknown" dargestellt.
-Der Mod ist nur für Singleplayer! ]]></de>
+]]></de>
     </description>
     <multiplayer supported="true"/>   
     <iconFilename>icon.dds</iconFilename>

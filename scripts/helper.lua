@@ -12,46 +12,6 @@
 --  v2.0.0.1	19.06.2020  handle all pallet types, (e.g. straw harvest)
 --  v2.1.0.0	30.06.2021  MULTIPLAYER! / handle all bale types, (e.g. Maizeplus forage extension)
 --=======================================================================================================
-function BaleSee:updBales(object,farmId,isRound,inc)
-	-- adjust count in self.bales[]. Currently inc is always +1, because delete() does its own decrease
-	local ft = object.fillType 		-- works, if it's a bale
-	local cap = math.floor(object.fillLevel/1000)
-	local hash = 100000* (isRound and 1 or 0) + 100* ft + cap
-	if self.bales[farmId] [hash] == nil then
-		if self.debug then
-			print(("** new bale fillType %d %s for farm %d. Hash: %d"):format(ft,
-				self.ft[ft].name,farmId,hash))
-		end
-		self.bales[farmId][hash] = {
-		 text = string.format("%s (%s %dk)", self.ft[ft].title, self.isRound[isRound], cap),
-		 number = 0}
-		self.numBalTypes[farmId] = self.numBalTypes[farmId] + 1	 -- update # bale types
-	end
-	self.bales[farmId][hash].number = self.bales[farmId][hash].number +inc  -- update bale type
-	self.numBales[farmId] = 		self.numBales[farmId] + inc	 			-- update bales sum
-	self.baleIdToHash[object.id] = hash 
-	return hash, self.bales[farmId][hash].text
-end;
-function BaleSee:updPallets(object, farm, inc)
-	-- adjust count in .pallets[farm] 
-	if farm == nil then 
-		print(string.format("**Error SeeBales: Pallet %s has no farm",
-			object.rootNode))
-		return
-	end	
-	local ft = object:getFillUnitFillType(1)
-	if self.pallets[farm][ft] == nil then
-		self.pallets[farm][ft] = 0
-		if self.debug then
-			print(("-- new pallet fillType %d %s"):format(ft,self.ft[ft].name))
-		end
-	end
-	self.pallets[farm][ft] = self.pallets[farm][ft] +inc  -- update pallet type
-	if self.debug then print(("--updPallets(%s, %d, %d): updated .pallets[%s]"):
-		format(object.rootNode,farm,inc,self.ft[ft].name))
-	end
-	self.numPals[farm] = self.numPals[farm] + inc	 	-- update pallets sum
-end;
 function BaleSee:getSize(typ)
 	-- return icon / dotmarker size in u.v coordinates
 	local isiz = self.symSizes[self.dispSize]
@@ -107,6 +67,103 @@ function BaleSee:getImage(object, ft)
 		end;
 	end;
 	return image
+end
+function BaleSee:toggleVis(spots, on)
+	-- show / hide some map hotspots
+	for i = 1, #spots do
+		spots[i][1].enabled = on
+		spots[i][1].hasDetails = on
+	end
+end;
+function BaleSee:toggleCol(spots, on, forPallets)
+	-- toggle dot / icon marker
+	dbprint(("--BaleSee: set dots %s. forPallets %s"):format(on,forPallets))
+	local uvs = self.uvB
+	if forPallets then uvs = self.uvP; end
+	if on then
+	-- for each hotspot: reset it to uvP marker
+		for _, h in pairs(spots) do
+			-- h is {hotspot, color, image, baleId}
+			hs = h[1]
+			-- on a client, hotspots are not created before player first sees them
+			if hs then  
+				--remove image, bgImage, set uv and color
+				hs:setImage 		 (nil, uvs, h[2])
+				hs:setBackgroundImage(nil, uvs, nil)	
+				hs:setIconScale		 (0.7)
+				hs:setSize			 (self:getSize("dot"))	
+			end
+		end
+	else    -- reset hotspots to Icons:
+		for _, h in pairs(spots) do
+			hs = h[1]
+			if hs then  
+				--remove uv, col. Set image, bgImage 
+				hs:setImage 		 (h[3], nil, nil)
+				hs:setBackgroundImage(self.bgImage, nil, nil)	
+				hs:setIconScale 	 (1)
+				hs:setSize			 (self:getSize("icon"))	
+			end
+		end
+	end
+end;
+function BaleSee:toggleSize()
+	-- set size for existing map hotspots
+	local u,v = self:getSize("icon")
+	if self.baleState == 3 then u,v = self:getSize("dot") end
+	for farm = 1,8 do
+		for _, h in pairs(self.bHotspots[farm]) do
+			hs = h[1]						-- h is {hotspot, color, image, baleId}
+			if hs then hs:setSize(u,v) end	-- set new size
+		end
+	end
+	-- for pallets:
+	u,v = self:getSize("icon")
+	if self.palState == 3 then u,v = self:getSize("dot") end
+	for _, h in pairs(self.pHotspots) do
+		hs = h[1]						-- h is {hotspot, color, image}
+		if hs then hs:setSize(u,v) end	-- set new size
+	end
+end;
+function BaleSee:updBales(object,farmId,isRound,inc)
+	-- adjust count in self.bales[]. Currently inc is always +1, because delete() does its own decrease
+	local ft = object.fillType 		-- works, if it's a bale
+	local cap = math.floor(object.fillLevel/1000)
+	local hash = 100000* (isRound and 1 or 0) + 100* ft + cap
+	if self.bales[farmId] [hash] == nil then
+		dbprint(("** new bale fillType %d %s for farm %d. Hash: %d"):format(ft,
+				self.ft[ft].name,farmId,hash))
+		self.bales[farmId][hash] = {
+		 text = string.format("%s (%s %dk)", self.ft[ft].title, self.isRound[isRound], cap),
+		 number = 0}
+		self.numBalTypes[farmId] = self.numBalTypes[farmId] + 1	 -- update # bale types
+	end
+	self.bales[farmId][hash].number = self.bales[farmId][hash].number +inc  -- update bale type
+	self.numBales[farmId] = 		self.numBales[farmId] + inc	 			-- update bales sum
+	self.baleIdToHash[object.id] = hash 
+	return hash, self.bales[farmId][hash].text
+end;
+function BaleSee:updPallets(object, farm, inc)
+	-- adjust count in .pallets[farm] 
+	if farm == nil then 
+		print(string.format("**Error SeeBales: Pallet %s has no farm",
+			object.rootNode))
+		return
+	end	
+	local ft = object:getFillUnitFillType(1)
+	if self.pallets[farm][ft] == nil then
+		self.pallets[farm][ft] = 0
+		dbprint(("-- new pallet fillType %d %s"):format(ft,self.ft[ft].name))
+	end
+	self.pallets[farm][ft] = self.pallets[farm][ft] +inc  -- update pallet type
+	dbprint(("--updPallets(%s, %d, %d): updated .pallets[%s]"):
+		format(object.rootNode,farm,inc,self.ft[ft].name))
+	self.numPals[farm] = self.numPals[farm] + inc	 	-- update pallets sum
+end;
+----------------------- debug / development functions -------------------------------
+function dbprint( str )
+	-- print debug info
+	if g_baleSee.debug then print(str) end
 end
 function BaleSee:makeLegend()
 	-- show all bale/pallet hotspot markers:
@@ -181,65 +238,6 @@ function BaleSee:toggleLegend(on)
 	local vis = on == "on" 
 	self:toggleVis(self.legend, vis) 
 end;
-function BaleSee:toggleVis(spots, on)
-	-- show / hide some map hotspots
-	for i = 1, #spots do
-		spots[i][1].enabled = on
-		spots[i][1].hasDetails = on
-	end
-end;
-function BaleSee:toggleCol(spots, on, forPallets)
-	-- toggle dot / icon marker
-	if self.debug then
-		print(("--BaleSee: set dots %s. forPallets %s"):format(on,forPallets))
-	end
-	local uvs = self.uvB
-	if forPallets then uvs = self.uvP; end
-	if on then
-	-- for each hotspot: reset it to uvP marker
-		for _, h in pairs(spots) do
-			-- h is {hotspot, color, image, baleId}
-			hs = h[1]
-			-- on a client, hotspots are not created before player first sees them
-			if hs then  
-				--remove image, bgImage, set uv and color
-				hs:setImage 		 (nil, uvs, h[2])
-				hs:setBackgroundImage(nil, uvs, nil)	
-				hs:setIconScale		 (0.7)
-				hs:setSize			 (self:getSize("dot"))	
-			end
-		end
-	else    -- reset hotspots to Icons:
-		for _, h in pairs(spots) do
-			hs = h[1]
-			if hs then  
-				--remove uv, col. Set image, bgImage 
-				hs:setImage 		 (h[3], nil, nil)
-				hs:setBackgroundImage(self.bgImage, nil, nil)	
-				hs:setIconScale 	 (1)
-				hs:setSize			 (self:getSize("icon"))	
-			end
-		end
-	end
-end;
-function BaleSee:toggleSize()
-	-- set size for existing map hotspots
-	local u,v = self:getSize("icon")
-	if self.baleState == 3 then u,v = self:getSize("dot") end
-	for farm = 1,8 do
-		for _, h in pairs(self.bHotspots[farm]) do
-			hs = h[1]						-- h is {hotspot, color, image, baleId}
-			if hs then hs:setSize(u,v) end	-- set new size
-		end
-	end
-	-- for pallets:
-	u,v = self:getSize("icon")
-	if self.palState == 3 then u,v = self:getSize("dot") end
-	for _, h in pairs(self.pHotspots) do
-		hs = h[1]						-- h is {hotspot, color, image}
-		if hs then hs:setSize(u,v) end	-- set new size
-	end
-end;
 function BaleSee:cltObjects( balesOnly )
 	-- console cmd: find out bale objects that client sees
 	if balesOnly == nil then balesOnly = false end
@@ -260,4 +258,27 @@ function BaleSee:cltObjects( balesOnly )
 				 tostring(o.ownerFarmId),tostring(o.typeName)))
 		end
 	end
-end
+end;
+function BaleSee.readStream(bale, superFunc, streamId, connection )
+	-- only called during debug / development
+	local bs = g_baleSee
+	local super = true
+	if bale.fillType == nil then bale.fillType = 0 end
+	-- do we see this for the 1st time?
+	if g_client.objectIds[bale] == nil then
+		superFunc(bale, streamId, connection)	
+		super = false
+		local cltBalId = g_client:getObjectId(bale)
+		print(string.format("-- readStream: %s Bale %s %s/%s (%sl) of farm %s", 
+			bs.ft[bale.fillType].name, cltBalId, bale.id,
+			tostring(bale.nodeId), tostring(bale.fillLevel), tostring(bale.ownerFarmId)))
+	end	
+	
+	if super then superFunc(bale, streamId, connection)	end
+	local x,z = 0,0
+	if bale.nodeId then x,_,z = getWorldTranslation(bale.nodeId) end
+	print(string.format("-- %s %s %s Bale %s/%s (%sl) of farm %s at %4.2f %4.2f.", 
+		bs.visible[bs.baleState], "n/a",
+		bs.ft[bale.fillType].name, tostring(bale.id),
+		tostring(bale.nodeId), tostring(bale.fillLevel), tostring(bale.ownerFarmId), x, z))	
+end;

@@ -13,22 +13,15 @@
 --  v2.1.0.0	30.06.2021  MULTIPLAYER! / handle all bale types, (e.g. Maizeplus forage extension)
 --=======================================================================================================
 -- ---------------Hotspots for bales.-----------------------------------------------------------
-function BaleSee:isMyFarm(obj)
-	return obj and obj.ownerFarmId and 
-		g_currentMission.playerUserId and g_farmManager:getFarmByUserId(g_currentMission.playerUserId)
-		and obj.ownerFarmId == g_farmManager:getFarmByUserId(g_currentMission.playerUserId).farmId	
-end;
 function BaleSee:delete()
 	if g_server then 
 		local bs = g_baleSee
 		local hash = bs.baleIdToHash[self.id]
 		local farm = self.ownerFarmId
 		if hash == nil then
-			if bs.debug then 
-			print(string.format("**Error SeeBales: trying to delete unknown bale id %s",self.id))
-			end
+			dbprint(string.format("**Error SeeBales: trying to delete unknown bale id %s",self.id))
 		elseif farm==nil or farm==0 then
-			print(string.format("**Error SeeBales: trying to delete bale id %s for unknown farm",self.id))
+			dbprint(string.format("**Error SeeBales: trying to delete bale id %s for unknown farm",self.id))
 		else
 			bs.bales[farm][hash].number = bs.bales[farm][hash].number -1
 			bs.numBales[farm] = bs.numBales[farm] -1
@@ -55,8 +48,7 @@ function BaleSee:addObject(obj, id)
 	-- called when client first sees a bale obj
 	if g_server or not obj:isa(G0.Bale) then return end
 	local bs = g_baleSee
-	if bs.debug then print(string.format("- addObject(): %s / %s",obj.id, id))
-	end
+	dbprint(string.format("- addObject(): %s / %s",obj.id, id))
 	-- create hotspot, if this bale does not have one yet
 	local hs, col, img 
 	local found = false
@@ -76,34 +68,12 @@ function BaleSee:addObject(obj, id)
 		if found then break end
 	end	
 end
-function BaleSee.readStream(bale, superFunc, streamId, connection )
-	local bs = g_baleSee
-	local super = true
-	if bale.fillType == nil then bale.fillType = 0 end
-	-- do we see this for the 1st time?
-	if g_client.objectIds[bale] == nil then
-		superFunc(bale, streamId, connection)	
-		super = false
-		local cltBalId = g_client:getObjectId(bale)
-		print(string.format("-- readStream: %s Bale %s %s/%s (%sl) of farm %s", 
-			bs.ft[bale.fillType].name, cltBalId, bale.id,
-			tostring(bale.nodeId), tostring(bale.fillLevel), tostring(bale.ownerFarmId)))
-	end	
-	
-	if super then superFunc(bale, streamId, connection)	end
-	local x,z = 0,0
-	if bale.nodeId then x,_,z = getWorldTranslation(bale.nodeId) end
-	print(string.format("-- %s %s %s Bale %s/%s (%sl) of farm %s at %4.2f %4.2f.", 
-		bs.visible[bs.baleState], "n/a",
-		bs.ft[bale.fillType].name, tostring(bale.id),
-		tostring(bale.nodeId), tostring(bale.fillLevel), tostring(bale.ownerFarmId), x, z))	
-end;
 function BaleSee:newBale()
-	--[[Add map hot spot for each bale so they can be found.  
+	--[[ 
 	Bales are created through Baler:createBale(), Bale:loadFromXMLFile(), and BuyableBale:loadBaleAtPosition()
 	all of these call Bale:register(), if running on server. So we append that. Baler:finishBale() calls createBale(), 
 	and also broadcasts BalerCreateBaleEvent to clients
-	For clients in MP we broacast our NewEvent, so they can update their bales table
+	For clients in MP we broadcast our NewEvent, so they can update their bales table
 	]]
 	if not g_server then
 		print("**Error SeeBales: newBale() was called on client")
@@ -143,8 +113,8 @@ function BaleSee:makeHotspot( bale, farmId )
 	-- following hotspot attributes need to be set, depending on baleState:
 	-- baleState	bgImage, 	image, 	color, 	uv, 	scal
 	-- ----------------------------------------------------------
-	-- 			3 	nil 		nil 	set 	set 	0.8
-	--		    2 	set 		set 	nil 	nil 	1.0
+	--	icon    2 	set 		set 	nil 	nil 	1.0
+	-- 	dot		3 	nil 		nil 	set 	set 	0.8
 	if bs.baleState == 2 then
 		-- Hotspots will be small images/icons.
 		hotspot:setImage(image, nil, nil)

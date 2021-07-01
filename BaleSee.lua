@@ -31,7 +31,7 @@ function BaleSee:initialize()
 	self.pt 			= nil		-- Gui pallet Table
 	
 	---------------- constants -----------------------------------------------------------------------
-	self.version 	= "2.1.0.0" 	-- allow all future pallet fillTypes
+	self.version 	= "2.1.0.0" 	-- MP version
 	self.modsSettings= string.sub(g_modsDirectory,1,-2) .. "Settings/"
 	self.visible 	=	{"invisible", "visible", "visible"}
 	self.isIcon 	=	{[false] = 	"icons";	[true]  =	"spots"}
@@ -98,17 +98,11 @@ function BaleSee:initialize()
 	InGameMenuMapFrame.showContextBox = 
 		Utils.appendedFunction(InGameMenuMapFrame.showContextBox, self.showContextBox)
 	NetworkNode.addObject = Utils.appendedFunction(NetworkNode.addObject, self.addObject);
-	Bale.readStream = 	Utils.overwrittenFunction(Bale.readStream, self.readStream);
-	Bale.register = 	Utils.appendedFunction(Bale.register, self.newBale);
-	Bale.delete = 		Utils.prependedFunction(Bale.delete, self.delete);
-	
---[[ make Gui texts global:
-    local gTexts = G0.g_i18n.texts
-    for k, v in pairs (g_i18n.texts) do
-        local prefix, _ = k:find("BS_", 1, true)
-        if prefix ~= nil then gTexts[k] = v; end
-    end
-]]
+	Bale.register = 		Utils.appendedFunction(Bale.register, self.newBale);
+	Bale.delete = 			Utils.prependedFunction(Bale.delete, self.delete);
+	if self.debug then
+		Bale.readStream = 	Utils.overwrittenFunction(Bale.readStream, self.readStream);
+	end
 	--load settings from modsSettings folder
 	local key = "BaleSee"
 	local f = self.modsSettings .. 'BaleSee.xml'
@@ -120,11 +114,10 @@ function BaleSee:initialize()
 		self.debug =	Utils.getNoNil(getXMLBool(xmlFile, key.."#debug"), false);			
 		delete(xmlFile);
 	end;
-	if self.debug then
-		print("read settings from: ".. f)
-		print(string.format("** baleState: %d. palletState: %d. size: %d",
+	dbprint("read settings from: ".. f)
+	dbprint(string.format("** baleState: %d. palletState: %d. size: %d",
 			self.baleState, self.palState, self.dispSize))
-	end
+
 	-- load "BSGui.lua", "BSGui.xml"
 	if not self:loadGUI(true, self.directory.."gui/") then
 		print(string.format(
@@ -145,8 +138,8 @@ function BaleSee:onStartMission()
 end;
 ----------------------- initilization on load Map ----------------------------------------------
 function BaleSee:onPostLoadMap()
+	dbprint("-- BaleSee:loadMap() --") 
 	self = g_baleSee
-	if self.debug then print("-- BaleSee:loadMap() --") end
 	self.ft 			= g_fillTypeManager.fillTypes
 	self.isMultiplayer 	= g_currentMission.missionDynamicInfo.isMultiplayer 
 	self.baleCols		=	{  -- set this here, because FillType.x is not yet filled, outside of loadMap()
@@ -210,7 +203,7 @@ function BaleSee:onPostLoadMap()
 	-- additional bale types (i.e. for maize+ extension)
 	self:loadBaleTypes()
 
-	-- keep bale tables for each farm individually (MP)
+	-- keep bale/pall tables for each farm individually (MP)
 	for i = 1,8 do
 		self.bales[i] = {[FillType.UNKNOWN] = {
 							text = "unknown (n/a)" ,
@@ -237,6 +230,7 @@ function BaleSee:onPostLoadMap()
 		self[t].sortingOrder = TableHeaderElement.SORTING_ASC
 		self[t]:initialize();
 	end 
+
     -- to insert Shift-B key for player F1-menu
     Player.registerActionEvents = Utils.appendedFunction(Player.registerActionEvents, self.registerActionEventsPlayer);
 	Player.removeActionEvents = Utils.appendedFunction(Player.removeActionEvents, self.removeActionEventsPlayer);		
@@ -262,7 +256,9 @@ function BaleSee:onWriteStream(streamId)
 		end	
     end	
     local nf = table.getn(farms)
-	print((" - BaleSee:writeStream() info for %d farms to client stream %s"):format(nf,streamId))
+	if self.debug then
+		print((" - BaleSee:writeStream() info for %d farms to client stream %s"):format(nf,streamId))
+	end	
     streamWriteInt8(streamId, nf) 					-- # of farm entries
 	for i,n in pairs(farms) do
 		streamWriteInt8(streamId, i) 				-- farmId
@@ -283,30 +279,30 @@ function BaleSee:onWriteStream(streamId)
 end;
 function BaleSee:onReadStream(streamId)
 	-- runs when a client joins the game
-	print((" - BaleSee:receiveData(%s) called"):format(streamId))
+	dbprint((" - BaleSee:receiveData(%s) called"):format(streamId))
     local farms = streamReadInt8(streamId)
-    print(tostring(farms).." farms:")
+    dbprint(tostring(farms).." farms:")
     local i,n,nh, hash  
     for _ = 1,farms do
 		i = streamReadInt8(streamId) 				-- farmId
 		nh = streamReadInt32(streamId) 				-- #bales == #hotspots
 		self.numBales[i] = nh
-		print(string.format("  read %d hotspots for farm %d:",nh,i))
+		dbprint(string.format("  read %d hotspots for farm %d:",nh,i))
 		for _ = 1,nh do
 			baleId = NetworkUtil.readNodeObjectId(streamId) 	
 			table.insert(self.bHotspots[i], {nil, nil, nil, baleId}) -- bale id on server
-			print(string.format("   %s", baleId))
+			dbprint(string.format("   %s", baleId))
 		end
 
 		n = streamReadInt8(streamId) 				-- # of bale entries
 		self.numBalTypes[i] = n 
-		print(string.format("  read %d baletypes for farm %d",n,i))
+		dbprint(string.format("  read %d baletypes for farm %d",n,i))
 		for _ = 1,n do
 			hash = streamReadInt32(streamId)
-			print(string.format("   hash: %s",hash))
+			dbprint(string.format("   hash: %s",hash))
 			self.bales[i][hash] = {number = streamReadInt32(streamId),
 									text = streamReadString(streamId)}
-			print(string.format("   %s %s",self.bales[i][hash].number, self.bales[i][hash].text))
+			dbprint(string.format("   %s %s",self.bales[i][hash].number, self.bales[i][hash].text))
 		end
     end	
 end;
