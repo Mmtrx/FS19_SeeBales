@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
 <!--
 =======================================================================================================
-  BALESEE HOTSPOT GUI
+ BALESEE HOTSPOT GUI
 
  Purpose:		Allows bales and pallets to show up on the PDA map as hotspots.
  Author:		Mmtrx		
  Changelog:
   v2.0.0		18.02.2020  add Gui (settings and statistics)
+  v2.1.0.0		30.06.2021  MULTIPLAYER! / handle all bale types, (e.g. Maizeplus forage extension)
 =======================================================================================================
 -->
 <GUI onOpen="onOpen" onClose="onClose" onCreate="onCreate">
@@ -25,7 +26,7 @@
 		</GuiElement>
 
 		<!-- settings box -->
-        <GuiElement type="bitmap" profile="ingameMenuSettingsBox" position="120px -138px" id="settings" size="400px 400px" >
+        <GuiElement type="bitmap" profile="ingameMenuSettingsBox" position="120px -138px" id="settings" size="400px 520px" >
             <GuiElement type="boxLayout" profile="ingameMenuSettingsLayout" position="0px -28px" id="boxLayout" >
                 <GuiElement type="multiTextOption" profile="baleSeeMultiText" onClick="onClickShowBales" id="setShowBales" toolTipElementId="helpBoxText" toolTipText="$l10n_BS_tipShowBales" >
                     <GuiElement type="button" profile="multiTextOptionLeft"/>
@@ -50,12 +51,20 @@
                     <GuiElement type="text" profile="multiTextOptionTitle" text="$l10n_BS_size"/>
                     <GuiElement type="bitmap" profile="multiTextOptionBg"/>
                 </GuiElement>
+
+                <GuiElement type="multiTextOption" profile="baleSeeMultiText" onClick="onClickFarm" id="setFarm" toolTipElementId="helpBoxText" toolTipText="$l10n_BS_tipFarm" >
+                    <GuiElement type="button" profile="multiTextOptionLeft"/>
+                    <GuiElement type="button" profile="multiTextOptionRight"/>
+                    <GuiElement type="text" profile="multiTextOptionText"/>
+                    <GuiElement type="text" profile="multiTextOptionTitle" text="$l10n_BS_farm"/>
+                    <GuiElement type="bitmap" profile="multiTextOptionBg"/>
+                </GuiElement>
 			</GuiElement>
 		</GuiElement>
 		<!-- help text box -->
-        <GuiElement type="bitmap" profile="ingameMenuHelpRowBg" position="120px 80px"  size="1000px 48px" id="helpBox" visible="false">
+        <GuiElement type="bitmap" profile="ingameMenuHelpRowBg" position="20px 80px"  size="600px 88px" id="helpBox" visible="false">
             <GuiElement type="bitmap" profile="ingameMenuHelpRowIcon" id="helpBoxIcon"/>
-            <GuiElement type="text" profile="ingameMenuHelpRowText" id="helpBoxText" text="" onTextChanged="onToolTipBoxTextChanged"/>
+            <GuiElement type="text" profile="ingameMenuHelpRowText" textWrapWidth="500px" id="helpBoxText" text="" onTextChanged="onToolTipBoxTextChanged"/>
         </GuiElement>
 
 		<!-- bale table -->
@@ -73,13 +82,18 @@
 				</GuiElement>
 			</GuiElement>
 		</GuiElement>
+		<!-- bales sum line -->
+		<GuiElement type="bitmap" profile="baleSeeRow" id="sumBal" screenAlign="bottomLeft" positionOrigin="bottomLeft" position="640px 11px" >
+			<GuiElement type="text" profile="baleSeeCellType" text="$l10n_BS_total" />
+			<GuiElement type="text" profile="baleSeeCell" id="bcount" position="280px 0px"/>
+		</GuiElement>
 		<!-- pallet table -->
-		<GuiElement type="empty" positionOrigin="topRight" position="-120px -138px" profile="baleSeePalContainer" screenAlign="topRight" >
+		<GuiElement type="empty" positionOrigin="topRight" position="-120px -138px" profile="baleSeeBalContainer" screenAlign="topRight" >
 			<GuiElement type="boxLayout" position="0px 0px" profile="baleSeeHeaderBox" id="palTableHeaderBox" >
 				<GuiElement type="button" profile="baleSeeTableHeaderType" text="$l10n_BS_Type" />
 				<GuiElement type="button" profile="baleSeeTableHeader" text="$l10n_BS_Count" />
 			</GuiElement>
-			<GuiElement type="table" position="1px -60px" id="palTable" handleFocus="false" profile="baleSeePalTable" rowTemplateName="myRowTemplate" columnNames="btype count" periodicUpdate="true" updateInterval="20" onUpdate="updateStats">
+			<GuiElement type="table" position="1px -60px" id="palTable" handleFocus="false" profile="baleSeeTable" rowTemplateName="myRowTemplate" columnNames="btype count" periodicUpdate="true" updateInterval="20" onUpdate="updateStats">
 				<GuiElement type="listItem" profile="baleSeeRow" name="myRowTemplate" >
 					<GuiElement type="bitmap" profile="baleSeeRowBg" >
 						<GuiElement type="text" onCreate="onDataBind1" profile="baleSeeCellType" name="btype" />
@@ -87,6 +101,11 @@
 					</GuiElement>
 				</GuiElement>
 			</GuiElement>
+		</GuiElement>
+		<!-- pallet sum line -->
+		<GuiElement type="bitmap" profile="baleSeeRow" id="sumPal" screenAlign="bottomRight" positionOrigin="bottomRight" position="-120px 11px" >
+			<GuiElement type="text" profile="baleSeeCellType" text="$l10n_BS_total" />
+			<GuiElement type="text" profile="baleSeeCell" id="pcount" position="280px 0px"/>
 		</GuiElement>
 		
 		<!-- std ok/esc buttons -->

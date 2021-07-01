@@ -10,6 +10,7 @@
 --  v1.1.2		08.10.2019	save statistics / add legend in debug mode 
 --  v2.0.0		10.02.2020  add Gui (settings and statistics)
 --  v2.0.0.1	19.06.2020  handle all pallet types, (e.g. straw harvest)
+--  v2.1.0.0	30.06.2021  MULTIPLAYER! / handle all bale types, (e.g. Maizeplus forage extension)
 --=======================================================================================================
 
 BSGui = {}
@@ -19,13 +20,18 @@ BSGui.CONTROLS = {          -- to address the different Gui elements by their id
 	SHOW_BALES          = "setShowBales",
 	SHOW_PALS           = "setShowPals",
 	SET_SIZE            = "setSize",
+	SET_FARM            = "setFarm",
 	HELPBOX 	        = "helpBox",
 	HELPBOX_TEXT        = "helpBoxText",
 	BALETABLE           = "baleTable",
 	PALTABLE            = "palTable",
 	STATS_CONTAINER     = "statsContainer",     
 	BALETABLE_HEADER_BOX= "baletableHeaderBox",
-	PALTABLE_HEADER_BOX = "paltableHeaderBox"
+	PALTABLE_HEADER_BOX = "paltableHeaderBox",
+	SUMBAL 				= "sumBal",
+	SUMPAL 				= "sumPal",
+	BCOUNT 				= "bcount",
+	PCOUNT 				= "pcount",
 }
 function BSGui:new(target, custom_mt)
 	local self = YesNoDialog:new(target, custom_mt or BSGui_mt)
@@ -34,30 +40,39 @@ function BSGui:new(target, custom_mt)
 end
 function BSGui:onClickShowBales( ix )
 	-- multiTextOption clicked
-	local bA, cA = BaleSee.baleActivate, BaleSee.colorActivate
-	BaleSee.baleState = ix
-	BaleSee.baleActivate, BaleSee.colorActivate = unpack(BaleSee.baleDisplay[ix])
-	if BaleSee.baleActivate   ~= bA then 
-		BaleSee:toggleVis(BaleSee.bHotspots, BaleSee.baleActivate) 
+	local bs = g_baleSee
+	local oldState = bs.baleState
+	bs.baleState = ix
+	if oldState == 1 or bs.baleState == 1 then 		-- switch display on / off
+		for i = 1,8 do
+			bs:toggleVis(bs.bHotspots[i], oldState == 1)   -- switch on, if display was off
+		end
 	end
-	if BaleSee.baleActivate and BaleSee.colorActivate ~= cA then
-		BaleSee:toggleCol(BaleSee.bHotspots, BaleSee.colorActivate, false)
+	if bs.baleState ~= 1 then 						-- dots true, if new baleState 3
+		for i = 1,8 do
+			bs:toggleCol(bs.bHotspots[i], bs.baleState == 3, false)
+		end
 	end
 end
 function BSGui:onClickShowPals( ix )
-	local bA, cA = BaleSee.palletActivate, BaleSee.colPalActivate
-	BaleSee.palState = ix
-	BaleSee.palletActivate, BaleSee.colPalActivate = unpack(BaleSee.baleDisplay[ix])
-	if BaleSee.palletActivate   ~= bA then 
-		BaleSee:toggleVis(BaleSee.pHotspots, BaleSee.palletActivate) 
+	local bs = g_baleSee
+	local oldState = bs.palState
+	bs.palState = ix
+	if oldState == 1 or bs.palState == 1 then 
+		bs:toggleVis(bs.pHotspots, oldState == 1) 
 	end
-	if BaleSee.palletActivate and BaleSee.colPalActivate ~= cA then
-		BaleSee:toggleCol(BaleSee.pHotspots, BaleSee.colPalActivate, true)
+	if bs.palState ~= 1 then
+		bs:toggleCol(bs.pHotspots, bs.palState == 3, true)
 	end
 end
 function BSGui:onClickSize( ix )
-	BaleSee.dispSize = ix
-	BaleSee:toggleSize()
+	g_baleSee.dispSize = ix
+	g_baleSee:toggleSize()
+end
+function BSGui:onClickFarm( ix )
+	g_baleSee.statFarm = ix
+	self:updateStats(self.baleTable)
+	self:updateStats(self.palTable)
 end
 function BSGui:onToolTipBoxTextChanged(toolTipBox)
 	local showText = (toolTipBox.text ~= nil and toolTipBox.text ~= "")
@@ -66,26 +81,47 @@ end
 
 function BSGui:updateStats(tb)
 	-- is called by BSGui elements baleTable, palTable
+	-- refresh tb.data
+	local bs, farm = g_baleSee, g_baleSee.statFarm
+	if farm == nil then
+		farm = g_farmManager:getFarmByUserId(g_currentMission.playerUserId).farmId
+	end
+	tb.data = {}
 	if tb.id == "baleTable" then
+		-- totals row:
+		self.bcount:setText(tostring(bs.numBales[farm])) 
+		self.sumBal:setVisible(bs.numBales[farm] > 0)
 		-- move bale counts to tb.data:
-		for i=1,BaleSee.BAL_TYPES do
-			BaleSee.bt.data[i] = BaleSee:buildRow(BaleSee.baleType[i],BaleSee.bales[i])
-		end
-	elseif tb.id == "palTable" then
-		BaleSee.pt.data = {}
-		for k,v in pairs(BaleSee.pallets) do
-			if v > 0 then
-				table.insert(BaleSee.pt.data, BaleSee:buildRow(BaleSee.ft[k].title,v))
+		for _,v in pairs(bs.bales[farm]) do
+			if v.number > 0 then
+				table.insert(tb.data, bs:buildRow(v.text, v.number))
 			end
 		end
-		local notshown = #BaleSee.pt.data - BaleSee.PAL_TYPES
-		if notshown > 0 then
-        	self.helpBoxText:setText(string.format(g_i18n:getText("BS_warnPal"), notshown))
-        	self.helpBox:setVisible(true)
-		end			
+	elseif tb.id == "palTable" then
+		-- totals row:
+		self.pcount:setText(tostring(bs.numPals[farm])) 
+		self.sumPal:setVisible(bs.numPals[farm] > 0)
+		for k,v in pairs(bs.pallets[farm]) do
+			if v > 0 then
+				table.insert(tb.data, bs:buildRow(bs.ft[k].title,v))
+			end
+		end
 	end
-	tb:updateView(true)
+	local notshown = #tb.data - bs.MAXLINES
+	if notshown > 0 then
+		local typ = "BS_warnBal"
+		if tb.id == "palTable" then typ = "BS_warnPal" end
+        self.helpBoxText:setText(string.format(g_i18n:getText(typ), notshown))
+       	self.helpBox:setVisible(true)
+	end			
+	tb.dataView = {"dummy"} 	-- updateView() checks for #dataView > 0
+	tb:updateView(false)
 end
 function BSGui:onClickBack(forceBack, usedMenuButton)
 	self:close()
 end
+--[[-- make overrideProfileName attributes possible for bt cells:
+	BaleSee.bt:setProfileOverrideFilterFunction(function( cell )
+		return true
+	end)
+	]]

@@ -10,6 +10,9 @@
 		<text name = "BS_PalletStatistics" text = "Pallette Statistics"/>
 		<text name = "BS_Type" text = "Type"/>
 		<text name = "BS_Count" text = "Count"/>
+		<text name = "BS_total" text = "Total"/>
+		<text name = "BS_round" text = "rd."/>
+		<text name = "BS_square" text = "sq."/>
 
 		<!-- Gui Settings Dialog -->
 		<text name = "BS_showBales" text = "Bales Display"/>
@@ -21,6 +24,7 @@
 		<text name = "BS_tipShowBales" text = "You can set how bales are displayed: as icons, as dot markers, or not at all."/>
 		<text name = "BS_tipShowPals" text = "You can set how pallets are displayed: as icons, as dot markers, or not at all."/>
 		<text name = "BS_tipSize" text = "You can set the size of the symbols (icons, dot markers) on the map."/>
-		<text name = "BS_warnPal" text = "WARNING: There are %d more pallet types on the map. We can display only the first 17."/>
+		<text name = "BS_warnPal" text = "Attention: There are %d more pallet types on the map. Please use mouse wheel to scroll."/>
+		<text name = "BS_warnBal" text = "Attention: There are %d more bale types on the map. Please use mouse wheel to scroll."/>
 	</texts>
 </l10n>

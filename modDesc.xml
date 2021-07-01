@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
-<modDesc descVersion="51">
+<modDesc descVersion="53">
     <author> Mmtrx</author>
-    <version>2.0.0.1</version>
+    <version>2.1.0.0</version>
     <title>
         <en>SeeBales</en>
         <fr>Je Vois Des Balles</fr>
-        <de>SeeBales</de>   
     </title>
     <description>
         <en><![CDATA[
@@ -29,6 +28,9 @@ Whenever the game is saved, these settings will be saved to a file "BaleSee.xml"
 The SeeBales menu also displays some statistics about all ingame bales and pallets. Lines with count = 0 are not shown in the statistics tables.
 
 CHANGE LOG:
+V2.1.0.0: Added support for non-standard bales (e.g. from Maizeplus, Maizeplus Forage Extension).
+Statistics now count bales of different sizes sepatarely.
+
 V2.0.0.1: Added support for non-standard pallets (e.g. for straw harvest add-on). 
 
 V2.0.0.0: Added menu to configure settings - Shift-b to show (only outside a vehicle). 
@@ -57,9 +59,12 @@ Les valeurs de configuration définies sont stockées dans le fichier "BaleSee.x
 De plus, le mod montre des statistiques sur toutes les balles et palettes actuellement disponibles. Les lignes dont la valeur (nombre) = 0 sont supprimées dans les tableaux statistiques.
 
 LOG DE CHANGEMENT :
-V2.0.0.1 : ajout d'une aide pour les palettes non standard, par exemple pour Straw Harvest. 
+V2.1.0.0: ajout d'une aide pour les balles non standard, par exemple pour Maizeplus, Maizeplus Forage Extension.
+Dans les statistiques, les balles de différentes tailles sont désormais comptées séparément.
+
+V2.0.0.1 : Ajout d'une aide pour les palettes non standard, par exemple pour Straw Harvest. 
  
-V2.0.0.0 : ajout d'un menu - appel avec la touche Shift-b (uniquement en dehors des véhicules) : configuration des marqueurs.
+V2.0.0.0 : Ajout d'un menu - appel avec la touche Shift-b (uniquement en dehors des véhicules): Configuration des marqueurs.
 Les statistiques sur les balles et les palettes s'affichent dans le menu. 
 La taille du marqueur est maintenant configurable. 
 Les balles de coton sont prises en compte.
@@ -85,6 +90,9 @@ Die eingestellten Konfigurationswerte werden beim Speichern des Spielstands in d
 Außerdem zeigt der Mod eine Statistik über alle aktuell vorhandenen Ballen und Paletten an. Zeilen mit Wert (Anzahl) = 0 werden in den Statistiktabellen unterdrückt.
 
 CHANGE LOG:
+V2.1.0.0: Non-standard Ballen werden unterstützt (z.B. für Maizeplus, Maizeplus Forage Extension).
+In der Statistik werden nun Ballen unterschiedlicher Größe separat gezählt. 
+
 V2.0.0.1: Support für non-standard Paletten hinzugefügt, z.B. für Straw Harvest add-on. 
  
 V2.0.0.0: Menu hinzugefügt - Aufruf mit Taste Umschalt-b (nur außerhalb von Fahrzeugen): Konfiguration der Marker.
@@ -97,14 +105,12 @@ Der Mod berücksichtigt keine Ballen / Paletten in entsprechenden storage mods (
 Der Mod kennt nur die Ballentypen des Standardspiels, andere Ballentypen werden als "Unknown" dargestellt.
 Der Mod ist nur für Singleplayer! ]]></de>
     </description>
-
-    <multiplayer supported="false"/>   
+    <multiplayer supported="true"/>   
     <iconFilename>icon.dds</iconFilename>
     <l10n filenamePrefix="l10n/l10n"/>
     <extraSourceFiles>
         <sourceFile filename="BaleSee.lua" />
     </extraSourceFiles>
-
     <actions>
         <action name="bs_Bale" category="PLAYER" axisType="HALF" ignoreComboMask="false"/>
     </actions>  
@@ -113,4 +119,30 @@ Der Mod ist nur für Singleplayer! ]]></de>
             <binding device="KB_MOUSE_DEFAULT" input="KEY_lshift KEY_b" />
         </actionBinding>
     </inputBinding> 
+    <baleTypes>
+        <bale name="WETGRASS_WINDROW"           color="51 102 0" round="HotspotIcons/round/GrassRoundBale.dds" square="HotspotIcons/square/GrassSquareBale.dds" />
+        <bale name="SEMIDRY_GRASS_WINDROW"      color="76 153 0" round="HotspotIcons/round/HayRoundBale.dds" square="HotspotIcons/square/HaySquareBale.dds" />
+        <bale name="GRASS_FERMENTED"            color="255 204 255" round="HotspotIcons/round/Silage-yell0.dds" square="HotspotIcons/square/Silage-green0.dds" />
+        <bale name="WETCLOVER_WINDROW"          color="0 102 0" round="HotspotIcons/round/cloverWet.dds" square="HotspotIcons/square/GrassSquareBale.dds" />        
+        <bale name="CLOVER_WINDROW"             color="0 153 0" round="HotspotIcons/round/clover.dds" square="HotspotIcons/square/GrassSquareBale.dds" />
+        <bale name="SEMIDRYCLOVER_WINDROW"      color="0 204 0" round="HotspotIcons/round/clover.dds" square="HotspotIcons/square/GrassSquareBale.dds" />
+        <bale name="DRYCLOVER_WINDROW"          color="0 255 0" round="HotspotIcons/round/cloverHay.dds" square="HotspotIcons/square/HaySquareBale.dds" />
+        <bale name="CLOVER_FERMENTED"           color="255 153 204" round="HotspotIcons/round/Silage-yell1.dds" square="HotspotIcons/square/Silage-green1.dds" />
+        <bale name="WETALFALFA_WINDROW"         color="0 102 51" round="HotspotIcons/round/alf-wet.dds" square="HotspotIcons/square/alfalfa.dds" />
+        <bale name="ALFALFA_WINDROW"            color="0 153 76" round="HotspotIcons/round/alfalfa.dds" square="HotspotIcons/square/alfalfa.dds" />
+        <bale name="SEMIDRYALFALFA_WINDROW"     color="0 204 102" round="HotspotIcons/round/alf-wet.dds" square="HotspotIcons/square/alf-semidry.dds" />
+        <bale name="DRYALFALFA_WINDROW"         color="0 255 128" round="HotspotIcons/round/alf-hay.dds" square="HotspotIcons/square/HaySquareBale.dds" />
+        <bale name="ALFALFA_FERMENTED"          color="255 102 178" round="HotspotIcons/round/Silage-green0.dds" square="HotspotIcons/square/Silage-green2.dds" />
+        <bale name="WETHORSEGRASS_WINDROW"      color="0 102 102" round="HotspotIcons/round/horseGrass.dds" square="HotspotIcons/square/GrassSquareBale.dds" />
+        <bale name="HORSEGRASS_WINDROW"         color="0 153 153" round="HotspotIcons/round/horseGrass.dds" square="HotspotIcons/square/GrassSquareBale.dds" />
+        <bale name="SEMIDRYHORSEGRASS_WINDROW"  color="0 204 204" round="HotspotIcons/round/horseGrass.dds" square="HotspotIcons/square/alfalfa.dds" />
+        <bale name="DRYHORSEGRASS_WINDROW"      color="0 255 255" round="HotspotIcons/round/HayRoundBale.dds" square="HotspotIcons/square/HaySquareBale.dds" />
+        <bale name="HORSEGRASS_FERMENTED"       color="255 51 153" round="HotspotIcons/round/Silage-green1.dds" square="HotspotIcons/square/Silage-pink0.dds" />
+        <bale name="CROP_WINDROW"               color="153 153 0" round="HotspotIcons/round/StrawRoundBale.dds" square="HotspotIcons/square/GrassSquareBale.dds" />
+        <bale name="CHOPPEDMAIZE"               color="204 204 0" round="HotspotIcons/round/horseGrass.dds" square="HotspotIcons/square/HaySquareBale.dds" />
+        <bale name="CHOPPEDMAIZE_FERMENTED"     color="255 102 255" round="HotspotIcons/round/foil-green0.dds" square="HotspotIcons/square/Silage-pink2.dds" />
+        <bale name="SILOGRASS"      color="204 255 255" round="HotspotIcons/round/foil-lightgreen.dds" square="HotspotIcons/square/SilageSquareBale.dds" />
+        <bale name="SILOCLOVER"     color="204 229 255" round="HotspotIcons/round/foil-green1.dds" square="HotspotIcons/square/Silage-pink1.dds" />
+        <bale name="SILOALFALFA"    color="204 204 255" round="HotspotIcons/round/foil-pink.dds" square="HotspotIcons/square/Silage-green2.dds" />
+    </baleTypes>
 </modDesc>

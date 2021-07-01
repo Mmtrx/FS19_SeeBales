@@ -10,17 +10,23 @@
 		<text name = "BS_PalletStatistics" text = "Paletten-Statistik"/>
 		<text name = "BS_Type" text = "Typ"/>
 		<text name = "BS_Count" text = "Anzahl"/>
+		<text name = "BS_total" text = "Gesamt"/>
+		<text name = "BS_round" text = "rd."/>
+		<text name = "BS_square" text = "qu."/>
 
 		<!-- Gui Settings Dialog -->
 		<text name = "BS_showBales" text = "Ballen-Anzeige"/>
 		<text name = "BS_showPals" text = "Paletten-Anzeige"/>
 		<text name = "BS_size" text = "Symbolgröße"/>
+		<text name = "BS_farm" text = "Hofname"/>
 		<text name = "BS_icons" text = "Icons"/>
 		<text name = "BS_symbols" text = "Punktmarker"/>
 
 		<text name = "BS_tipShowBales" text = "Stellen Sie ein, ob die Ballen als Icon, als Punktmarker oder gar nicht angezeigt werden"/>
 		<text name = "BS_tipShowPals" text = "Stellen Sie ein, ob die Paletten als Icon, als Punktmarker oder gar nicht angezeigt werden"/>
 		<text name = "BS_tipSize" text = "Stellen Sie die Größe der auf der Karte angezeigten Symbole (Icons, Punktmarker) ein"/>
-		<text name = "BS_warnPal" text = "WARNUNG: Es gibt %d weitere aktive Palettenarten auf der Karte. Wir können zur Zeit nur 17 anzeigen."/>
+		<text name = "BS_tipFarm" text = "Stellen Sie ein, für welchen Hof die Ballen-Statistik angezeigt wird."/>
+		<text name = "BS_warnPal" text = "Achtung: Es gibt %d weitere aktive Palettenarten auf der Karte. Bitte mit Mausrad scrollen."/>
+		<text name = "BS_warnBal" text = "Achtung: Es gibt %d weitere aktive Ballenarten auf der Karte. Bitte mit Mausrad scrollen."/>
 	</texts>
 </l10n>

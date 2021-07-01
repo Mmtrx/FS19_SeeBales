@@ -7,6 +7,7 @@
  Author:        Mmtrx       
  Changelog:
   v2.0.0        18.02.2020  add Gui (settings and statistics)
+  v2.1.0.0      07.05.2021  handle all bale types, (e.g. Maizeplus forage extension)
 =======================================================================================================
 -->
 <GUIProfiles>
@@ -37,15 +38,15 @@
         <Value name="size" value="$preset_len398"/>
     </Profile>
     <Profile name="baleSeeBalContainer" extends="ingameMenuStatisticsContainer">
-        <Value name="size" value="400px 504px"/>
+        <Value name="size" value="400px 704px"/>
     </Profile>
     <Profile name="baleSeeHeaderBox" extends="ingameMenuStatisticsTableHeaderBox">
         <Value name="size" value="400px 60px"/>
     </Profile>
     <Profile name="baleSeeTable" extends="ingameMenuStatisticsTable">
-        <Value name="size" value="400px 444px"/>
-        <Value name="maxNumItems" value="11"/>
-        <Value name="itemsPerCol" value="11"/>
+        <Value name="size" value="400px 644px"/>
+        <Value name="maxNumItems" value="16"/>
+        <Value name="itemsPerCol" value="16"/>
         <Value name="rowBackgroundProfile" value="baleSeeRowBg"/>
         <Value name="rowBackgroundProfileAlternate" value="baleSeeRowBgAlt"/>
     </Profile>
@@ -68,18 +69,10 @@
         <Value name="textSize" value="16px"/>
     </Profile>
     <!-- override for category headings in bale table -->
-    <Profile name="baleSeeCategory" extends="ingameMenuStatisticsRowTypeCell">
+    <Profile name="baleSeeTotal" extends="ingameMenuStatisticsRowTypeCell">
         <Value name="size" value="280px 40px"/>
         <Value name="textSize" value="20px"/>
         <Value name="textOffset" value="80px 0px"/>
     </Profile>
 
-    <!-- Pallet Statistics Table - - - - - - - - - - - - - - - - - - - - -  -->
-    <Profile name="baleSeePalContainer" extends="ingameMenuStatisticsContainer">
-        <Value name="size" value="400px 744px"/>
-    </Profile>
-    <Profile name="baleSeePalTable" extends="baleSeeTable">
-        <Value name="maxNumItems" value="17"/>
-        <Value name="itemsPerCol" value="17"/>
-    </Profile>
 </GUIProfiles>

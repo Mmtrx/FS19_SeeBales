@@ -10,159 +10,174 @@
 --  v1.1.2		08.10.2019	save statistics / add legend in debug mode 
 --  v2.0.0		10.02.2020  add Gui (settings and statistics)
 --  v2.0.0.1	19.06.2020  handle all pallet types, (e.g. straw harvest)
+--  v2.1.0.0	30.06.2021  MULTIPLAYER! / handle all bale types, (e.g. Maizeplus forage extension)
 --=======================================================================================================
 -- ---------------Hotspots for bales.-----------------------------------------------------------
+function BaleSee:isMyFarm(obj)
+	return obj and obj.ownerFarmId and 
+		g_currentMission.playerUserId and g_farmManager:getFarmByUserId(g_currentMission.playerUserId)
+		and obj.ownerFarmId == g_farmManager:getFarmByUserId(g_currentMission.playerUserId).farmId	
+end;
 function BaleSee:delete()
-	local isRound = self.baleDiameter ~= nil
-	BaleSee:updBales(self, isRound, -1)
-	BaleSee:delhot (self.mapHotspot)
-end;
-function BaleSee:setNodeId(nodeId)
-	--[[Add map hot spot for each bale so they can be found.  We put this here in the code, as it's
-		a location that will end up getting called by load(), loadFromAttributesAndNodes(), and readStream().]]
-	local isRoundbale = Utils.getNoNil(getUserAttribute(nodeId, "isRoundbale"), false)
-	local color = 	BaleSee:getColor(self)
-	local uv 	= 	BaleSee.uvB
-	local image = 	BaleSee:getIcon(self)
-
-	-- following hotspot attributes need to be set, depending on colorActivate:
-	-- colorActivate	bgImage, 	image, 	color, 	uv, 	scal
-	-- ----------------------------------------------------------
-	-- 			true 	nil 		nil 	set 	set 	0.8
-	--		   false 	set 		set 	nil 	nil 	1.0
-	local nam = 	BaleSee.ft[self.fillType].title
-	if g_gui.languageSuffix == "_de" then nam = nam.."-"
-	else nam = nam.." "
+	if g_server then 
+		local bs = g_baleSee
+		local hash = bs.baleIdToHash[self.id]
+		local farm = self.ownerFarmId
+		if hash == nil then
+			if bs.debug then 
+			print(string.format("**Error SeeBales: trying to delete unknown bale id %s",self.id))
+			end
+		elseif farm==nil or farm==0 then
+			print(string.format("**Error SeeBales: trying to delete bale id %s for unknown farm",self.id))
+		else
+			bs.bales[farm][hash].number = bs.bales[farm][hash].number -1
+			bs.numBales[farm] = bs.numBales[farm] -1
+			bs:delhot (self.mapHotspot, farm)
+			-- broadcast to clients
+			local bale = self
+			g_server:broadcastEvent(SeeBalesEventNew:new(bale,farm,hash,"",false))
+		end
 	end
-	nam = nam .. g_i18n:getText("unit_bale")
-	-- Generate bale hotspot. Category = 6 to distinguish from others
-	local hotspot = 	MapHotspot:new(nam, MapHotspot.CATEGORY_TOUR)
-
-	if BaleSee.colorActivate then
-		-- Hotspots will be small colored circles.
-		hotspot:setIconScale(0.8)
-		hotspot:setImage(nil, uv, color) 					-- colored circle 
-		hotspot:setBackgroundImage(nil, uv, nil)			-- black circle
-		hotspot:setSize(BaleSee:getSize("dot"))				-- size for small cicrcles
-	else
-		-- Hotspots will be small images/icons.
-		hotspot:setImage(image, nil, nil)
-		hotspot:setBackgroundImage(BaleSee.bgImage, nil, nil)	
-		hotspot:setSize(BaleSee:getSize("icon"))	 
-	end;
-	hotspot.enabled = BaleSee.baleActivate						
-	hotspot.verticalAlignment = Overlay.ALIGN_VERTICAL_MIDDLE		
-	hotspot:setLinkedNode(nodeId)			-- also sets the x,z MapPos
-
-	self.mapHotspot = hotspot 				-- property of the bale object
-	g_currentMission.hud.ingameMap:addMapHotspot(hotspot) 
-	table.insert(BaleSee.bHotspots, {hotspot,color,image,self.id}) 
-
-	-- update count for this bale type
-	BaleSee:updBales(self, isRoundbale, 1)
-
-	if BaleSee.debug then
-		local x,y,z = getWorldTranslation(nodeId)
-		print(string.format("** %s %s %s Bale %d/%d (%d) at %4.2f %4.2f.", 
-			BaleSee.visible[BaleSee.baleActivate], BaleSee.isRound[isRoundbale],
-			BaleSee.ft[self.fillType].name, self.id,
-			nodeId, self.fillLevel, x, z))	
-	end;
 end;
-
--- ----------------Manage Hotspots for pallets.--------------------------------------------------
-function BaleSee:onDelete()		-- is called on delete for a pallet type object
-	if BaleSee.debug then
-		local typ = 	 self.typeName
-		local fillType = self:getFillUnitFillType(1)
-		print(string.format("** Delete %s %s %d",
-			BaleSee.ft[fillType].name, typ, self.rootNode))
-	end
-	-- decrease count for this pallet type:
-	BaleSee:updPallets(self, -1)
-	-- remove hotspot from ingameMap and our own List
-	local hot = self.mapHotspot
-	if hot ~= nil then
-		g_currentMission.hud.ingameMap:removeMapHotspot(hot);
-		for i = 1, table.getn(BaleSee.pHotspots) do
-			if BaleSee.pHotspots[i][1] == hot then
-		    	table.remove(BaleSee.pHotspots, i)
+function BaleSee:delhot(hotspot, farm)
+	-- delete a bale hotspot
+	if hotspot ~= nil then
+		g_currentMission.hud.ingameMap:removeMapHotspot(hotspot);
+		for i = 1, table.getn(self.bHotspots[farm]) do
+			if self.bHotspots[farm][i][1] == hotspot then
+		    	table.remove(self.bHotspots[farm], i)
 		    	break
 			end
 		end
 	end;
 end;
-function BaleSee:onLoadFinished(Savegame)
-	--[[Add map hot spot for each pallet so they can be found.]]
-	local nodeId = 		self.rootNode
-	local fillType = 	self:getFillUnitFillType(1)
-	local image = 		BaleSee:getImage(self)
-	local color = 		BaleSee:getColor(self)
-	local nam = 		BaleSee.ft[fillType].title
-	-- Generate pallet hotspot. Category = 6 to distinguish from other
-	local hotspot = 	MapHotspot:new(nam, MapHotspot.CATEGORY_TOUR)
+function BaleSee:addObject(obj, id)
+	-- called when client first sees a bale obj
+	if g_server or not obj:isa(G0.Bale) then return end
+	local bs = g_baleSee
+	if bs.debug then print(string.format("- addObject(): %s / %s",obj.id, id))
+	end
+	-- create hotspot, if this bale does not have one yet
+	local hs, col, img 
+	local found = false
+	for f = 1,8 do
+		if #bs.bHotspots[f] > 0 then
+			for i,h in ipairs(bs.bHotspots[f]) do
+				if h[4]==id and h[1] == nil then
+					hs, col, img = bs:makeHotspot(obj, f)
+					bs.bHotspots[f][i] = {hs, col, img, id}
+					-- set farmId (original game does it not on clients)
+					obj:setOwnerFarmId(f)
+					found = true
+					break
+				end
+			end
+		end
+		if found then break end
+	end	
+end
+function BaleSee.readStream(bale, superFunc, streamId, connection )
+	local bs = g_baleSee
+	local super = true
+	if bale.fillType == nil then bale.fillType = 0 end
+	-- do we see this for the 1st time?
+	if g_client.objectIds[bale] == nil then
+		superFunc(bale, streamId, connection)	
+		super = false
+		local cltBalId = g_client:getObjectId(bale)
+		print(string.format("-- readStream: %s Bale %s %s/%s (%sl) of farm %s", 
+			bs.ft[bale.fillType].name, cltBalId, bale.id,
+			tostring(bale.nodeId), tostring(bale.fillLevel), tostring(bale.ownerFarmId)))
+	end	
 	
-	if BaleSee.colPalActivate then
-		-- Hotspots will be small colored dots.
-		hotspot:setIconScale(0.7)
-		hotspot:setImage 		  (nil, BaleSee.uvP, color)
-		hotspot:setBackgroundImage(nil, BaleSee.uvP, nil)	
-		hotspot:setSize(BaleSee:getSize("dot"))
-	else
+	if super then superFunc(bale, streamId, connection)	end
+	local x,z = 0,0
+	if bale.nodeId then x,_,z = getWorldTranslation(bale.nodeId) end
+	print(string.format("-- %s %s %s Bale %s/%s (%sl) of farm %s at %4.2f %4.2f.", 
+		bs.visible[bs.baleState], "n/a",
+		bs.ft[bale.fillType].name, tostring(bale.id),
+		tostring(bale.nodeId), tostring(bale.fillLevel), tostring(bale.ownerFarmId), x, z))	
+end;
+function BaleSee:newBale()
+	--[[Add map hot spot for each bale so they can be found.  
+	Bales are created through Baler:createBale(), Bale:loadFromXMLFile(), and BuyableBale:loadBaleAtPosition()
+	all of these call Bale:register(), if running on server. So we append that. Baler:finishBale() calls createBale(), 
+	and also broadcasts BalerCreateBaleEvent to clients
+	For clients in MP we broacast our NewEvent, so they can update their bales table
+	]]
+	if not g_server then
+		print("**Error SeeBales: newBale() was called on client")
+		return
+	end
+	local bs,bale = g_baleSee, self
+	local farm = bale.ownerFarmId
+	local h,c,i,isRoundbale = bs:makeHotspot(bale, farm)
+	table.insert(bs.bHotspots[farm], {h,c,i, bale.id}) 
+
+	-- update count for this bale type
+	local hash,txt = bs:updBales(bale, farm, isRoundbale, 1)
+	g_server:broadcastEvent(SeeBalesEventNew:new(bale,farm,hash,txt,true))
+end;
+function BaleSee:makeHotspot( bale, farmId )
+	-- create map hotspot for bale object
+	local bs = g_baleSee
+	local isRoundbale = Utils.getNoNil(getUserAttribute(bale.nodeId, "isRoundbale"), false)
+	if bs.debug then
+		local x,y,z = getWorldTranslation(bale.nodeId)
+		print(string.format("-- makeHotspot(): %s %s %s Bale %d/%s (%sl) of farm %s at %4.2f %4.2f.", 
+			bs.visible[bs.baleState], bs.isRound[isRoundbale],
+			bs.ft[bale.fillType].name, bale.id,
+			tostring(bale.nodeId), tostring(bale.fillLevel), tostring(farmId), x, z))	
+	end;
+	local color = 	bs:getColor(bale)
+	local uv 	= 	bs.uvB
+	local image = 	bs:getIcon(bale)
+	local sep = 	" "
+	if g_gui.languageSuffix == "_de" then sep = "-" end
+	local nam = string.format("%s%s%s %s",bs.ft[bale.fillType].title,sep, g_i18n:getText("unit_bale"), bale.id)
+	
+	-- Generate bale hotspot. Category = 6 to distinguish from others
+	local hotspot = MapHotspot:new(nam, MapHotspot.CATEGORY_TOUR)
+	hotspot.baleSee = true
+	hotspot.bsImage = image
+	-- following hotspot attributes need to be set, depending on baleState:
+	-- baleState	bgImage, 	image, 	color, 	uv, 	scal
+	-- ----------------------------------------------------------
+	-- 			3 	nil 		nil 	set 	set 	0.8
+	--		    2 	set 		set 	nil 	nil 	1.0
+	if bs.baleState == 2 then
 		-- Hotspots will be small images/icons.
 		hotspot:setImage(image, nil, nil)
-		hotspot:setBackgroundImage(BaleSee.bgImage, nil, nil)	
-		hotspot:setSize(BaleSee:getSize("icon"))
+		hotspot:setBackgroundImage(bs.bgImage, nil, nil)	
+		hotspot:setSize(bs:getSize("icon"))	 
+	else
+		-- Hotspots will be small colored circles.
+		hotspot:setIconScale(0.8)
+		hotspot:setImage(nil, uv, color) 					-- colored circle 
+		hotspot:setBackgroundImage(nil, uv, nil)			-- black circle
+		hotspot:setSize(bs:getSize("dot"))					-- size for small cicrcles
 	end;
-	hotspot:setLinkedNode(nodeId)			-- also sets the x,z MapPos
+	hotspot.enabled = bs.baleState > 1					
 	hotspot.verticalAlignment = Overlay.ALIGN_VERTICAL_MIDDLE		
-	hotspot.enabled = BaleSee.palletActivate						
+	hotspot:setLinkedNode(bale.nodeId)			-- also sets the x,z MapPos
+	hotspot:setOwnerFarmId(farmId)
+
+	bale.mapHotspot = hotspot 				-- property of the bale object
 	g_currentMission.hud.ingameMap:addMapHotspot(hotspot) 
-	
-	self.mapHotspot = hotspot 				-- property of the pallet object
-	table.insert(BaleSee.pHotspots, {hotspot,color,image}) 
-	-- increase count for this pallet type:
-	BaleSee:updPallets(self, 1)
-
-	if BaleSee.debug then
-		local x,y,z = getWorldTranslation(nodeId)
-		print(string.format("** %s %s Pallet %d at %4.2f %4.2f", 
-			BaleSee.visible[BaleSee.palletActivate], BaleSee.ft[fillType].name, nodeId, x, z))
-	end;			
+	return hotspot,color,image,isRoundbale
 end;
-function BaleSee:onChangedFillType(fillUnitIndex, fillTypeIndex, oldFillTypeIndex)
-	-- to set fillType of newly filled fillablePallet (egg / wool / potato / sugarbeet)
-	-- also, when selling/ feeding pallets, they change back to UNKNOWN when emptied, shortly 
-	-- before they get deleted
-	if BaleSee.debug then
-		print(string.format("** filltype change(%d,%d,%d) for %s pallet %d to %s", 
-		fillUnitIndex, fillTypeIndex, oldFillTypeIndex,
-		BaleSee.ft[oldFillTypeIndex].name,
-	 	self.rootNode, BaleSee.ft[fillTypeIndex].name))
-	end
-	local hotspot = self.mapHotspot
-	if hotspot == nil then return; end 			-- only for our managed pallets
+function BaleSee.showContextBox(mapFrame, hotspot, description, imageFilename, uvs, farmId)
+	-- if it's one of our hotspots, then set image filename for details box 
+	-- So that also "dot markers" display an image in details box
+	if hotspot.baleSee then
+		mapFrame.contextImage:setImageFilename(hotspot.bsImage)
+		mapFrame.contextImage:setImageUVs(GuiOverlay.STATE_NORMAL, unpack(Overlay.DEFAULT_UVS))
 
-	local color, image = BaleSee:getColor(self), BaleSee:getImage(self)
-	if BaleSee.colPalActivate then
-		hotspot:setImage(nil, BaleSee.uvP, color) 	-- change color.
-	else			
-		hotspot:setImage(image, nil, nil) 			-- change small image/icon.
-	end;
-	-- change also in our table of hotspots:
-	for i,h in ipairs(BaleSee.pHotspots) do
-		if h[1] == hotspot then
-			-- BaleSee.pHotspots[i] = {h[1],color,image}
-			h[2],h[3] = color,image 				-- should be enough
-			hotspot:setText(BaleSee.ft[fillTypeIndex].title, true, false)  --(name,hidden,alwaysshow)
-			break
+	-- add farm text in hotspot details box for MP
+		if g_baleSee.isMultiplayer then
+			local farm = g_farmManager:getFarmById(hotspot.ownerFarmId)
+			mapFrame.contextFarm:setText(farm.name)
+			mapFrame.contextFarm:setTextColor(unpack(farm:getColor()))
 		end
 	end
-	-- adjust pallet counts, old filltype -1, new fillType +1:
-	BaleSee.pallets[oldFillTypeIndex] = BaleSee.pallets[oldFillTypeIndex] -1
-	if BaleSee.pallets[fillTypeIndex] == nil then
-		BaleSee.pallets[fillTypeIndex] = 1 			-- we have a new filltype
-	else
-		BaleSee.pallets[fillTypeIndex] = BaleSee.pallets[fillTypeIndex] +1
-	end
-end
+end;
