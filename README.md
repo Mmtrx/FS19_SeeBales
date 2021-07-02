@@ -35,4 +35,7 @@ V2.0.0.0:
 - Marker size now configurable.
 
 ## LIMITATIONS:
-The mod does not account for any bales / pallets in corresponding storage mods (e.g. BaleStacks https://www.farming-simulator.com/mod.php?lang=en&country=de&mod_id=141307&title=fs2019).
+The mod does not account for any bales / pallets in corresponding storage mods, e.g. [BaleStacks](https://www.farming-simulator.com/mod.php?lang=en&country=de&mod_id=141307&title=fs2019)).
+
+## Acknowledgement
+Thank you [Royal-Modding](https://royal-modding.github.io/) for permission to use your framework.
